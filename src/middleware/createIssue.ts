@@ -32,7 +32,11 @@ const createIssue = (...roles : Role[]) => {
         sendResponse(res, 404, false, "User Not Found")
     }
 
+    if (roles.length && !roles.includes(user.role)) {
+        sendResponse(res, 403, false, "Forbidden Access!!!");
+    }
 
+    req.user = payload
 
     next();
   };
