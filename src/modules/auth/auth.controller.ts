@@ -7,20 +7,13 @@ const createUser = async (req: Request, res: Response) => {
     const result = await authService.createUserInDb(req.body);
 
     if (result.rows.length === 0) {
-      res.status(404).json({
-        success: false,
-        message: "User SignUp Failed",
-      });
+      sendResponse(res, 404, false, "User SignUp Failed", Error)
     }
 
     sendResponse(res, 201, true, "User Created Successfully", result.rows[0])
-    
+
   } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-      error: error,
-    });
+    sendResponse(res, 500, false, error.message as string)
   }
 };
 

@@ -5,12 +5,12 @@ const sendResponse = <T>(
   statusCode: number,
   success: boolean,
   message: string,
-  data: T,
+  data?: T,
 ) => {
     return res.status(statusCode).json({
         success,
         message,
-        data
+        ...(data !== undefined && { data }),
     })
 };
 
