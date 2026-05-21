@@ -5,7 +5,6 @@ import sendResponse from "../../utils/sendResponse";
 const createUser = async (req: Request, res: Response) => {
   try {
     const result = await authService.createUserInDb(req.body);
-
     if (result.rows.length === 0) {
       sendResponse(res, 404, false, "User SignUp Failed", Error)
     }
