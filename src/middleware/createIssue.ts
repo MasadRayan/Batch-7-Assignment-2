@@ -26,7 +26,6 @@ const createIssue = (...roles : Role[]) => {
     );
 
     const user = userInfo.rows[0];
-    console.log(user.role)
 
     if (userInfo.rows.length === 0) {
         sendResponse(res, 404, false, "User Not Found")

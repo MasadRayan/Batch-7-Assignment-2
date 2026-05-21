@@ -12,3 +12,9 @@ export interface IUserPayloadObject extends JwtPayload {
   email: string;
   role: string;
 }
+
+export interface IssueQueryParams  {
+  sort : string;
+  type: string;
+  status : string;
+}
