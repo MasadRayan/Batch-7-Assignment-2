@@ -6,11 +6,13 @@ const sendResponse = <T>(
   success: boolean,
   message: string,
   data?: T,
+  error ?: T,
 ) => {
     return res.status(statusCode).json({
         success,
         message,
         ...(data !== undefined && { data }),
+        ...(error !== undefined && {error})
     })
 };
 

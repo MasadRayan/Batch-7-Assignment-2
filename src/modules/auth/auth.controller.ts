@@ -9,11 +9,9 @@ const createUser = async (req: Request, res: Response) => {
     if (result.rows.length === 0) {
       sendResponse(res, 404, false, "User SignUp Failed", Error)
     }
-
     sendResponse(res, 201, true, "User Created Successfully", result.rows[0])
-
   } catch (error: any) {
-    sendResponse(res, 500, false, error.message as string)
+    sendResponse(res, 500, false, error.message as string, undefined, error)
   }
 };
 
