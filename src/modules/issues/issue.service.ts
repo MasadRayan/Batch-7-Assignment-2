@@ -30,29 +30,58 @@ const getAllIssuesFromDB = async (
   status: string | undefined,
 ) => {
   const order = sort === "oldest" ? "ASC" : "DESC";
+  let issuesLength;
 
   if (type && status) {
-    return await pool.query(
+    issuesLength = await pool.query(
       `SELECT * FROM issues WHERE type = $1 AND status = $2 ORDER BY created_at ${order}`,
       [type, status],
     );
   } else if (type) {
-    return await pool.query(
+    issuesLength = await pool.query(
       `SELECT * FROM issues WHERE type = $1 ORDER BY created_at ${order}`,
       [type],
     );
   } else if (status) {
-    return await pool.query(
+    issuesLength = await pool.query(
       `SELECT * FROM issues WHERE status = $1 ORDER BY created_at ${order}`,
       [status],
     );
   } else {
-    return await pool.query(
+    issuesLength = await pool.query(
       `SELECT * FROM issues ORDER BY created_at ${order}`,
     );
   }
-};
+  const issues = issuesLength.rows;
 
+  if (issues.length === 0) {
+    throw new Error("No issues found");
+  }
+
+  const allRepoterId = issues.map((issue) => issue.reporter_id);
+
+  const getUsers = await pool.query(
+    `
+    SELECT id, name, role FROM users WHERE id = ANY($1)
+    `,
+    [allRepoterId],
+  );
+
+  const reporterMap = new Map(getUsers.rows.map((user) => [user.id, user]));
+
+  const result = issues.map((issue) => ({
+    id: issue.id,
+    title: issue.title,
+    description: issue.description,
+    type: issue.type,
+    status: issue.status,
+    reporter: reporterMap.get(issue.reporter_id),
+    created_at: issue.created_at,
+    updated_at: issue.updated_at,
+  }))
+  
+  return result;
+};
 
 export const issueService = {
   createIssueInDB,

@@ -18,7 +18,7 @@ const getAllIssues = async (req: Request, res: Response) => {
   const {sort, type, status} = req.query
   try {
     const result = await issueService.getAllIssuesFromDB(sort as string, type as string, status as string)
-    sendResponse(res, 200, true, "All Issues Retrieved from Database", result?.rows)
+    sendResponse(res, 200, true, "All Issues Retrieved from Database", result)
   } catch (error : any) {
     sendResponse(res, 500, false, "Internal server error", undefined, error)
   }
