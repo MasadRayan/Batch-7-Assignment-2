@@ -1,4 +1,5 @@
 import express from "express"
+import { AuthRouter } from "./modules/auth/auth.route";
 const app = express()
 const port = 3000;
 
@@ -13,5 +14,8 @@ app.get('/', (req, res) => {
     Project : "Bug fixer",
   })
 })
+
+
+app.use('/api/auth', AuthRouter)
 
 export default app;
