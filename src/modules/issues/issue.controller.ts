@@ -24,7 +24,18 @@ const getAllIssues = async (req: Request, res: Response) => {
   }
 }
 
+const getASingleUser = async (req : Request, res: Response) => {
+  const id = req.params.id;
+  try {
+    const result = await issueService.getASingleIssueFromDB(id as string);
+    sendResponse(res, 200, true, "Issue Retrived Successfully", result);
+  } catch (error : any) {
+    sendResponse(res, 500, false, "Internal Server Error", undefined, error)
+  }
+}
+
 export const issueController = {
   createIssue,
-  getAllIssues
+  getAllIssues,
+  getASingleUser,
 };
