@@ -8,6 +8,7 @@ dotenv.config({
 
 const config = {
     db_string : process.env.DATABASE_CONNECTION_STRING,
+    accessToken_key : process.env.ACCESSTOKEN_KEY,
 }
 
 export default config
