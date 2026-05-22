@@ -24,17 +24,17 @@ const getAllIssues = async (req: Request, res: Response) => {
       type as string,
       status as string,
     );
-    sendResponse(res, 200, true, "All Issues Retrieved from Database", result);
+    sendResponse(res, 200, true, undefined, result);
   } catch (error: any) {
     sendResponse(res, 500, false, error.message, undefined, error);
   }
 };
 
-const getASingleUser = async (req: Request, res: Response) => {
+const getASingleissue = async (req: Request, res: Response) => {
   const id = req.params.id;
   try {
     const result = await issueService.getASingleIssueFromDB(id as string);
-    sendResponse(res, 200, true, "Issue Retrived Successfully", result);
+    sendResponse(res, 200, true, undefined, result);
   } catch (error: any) {
     sendResponse(res, 500, false, error.message, undefined, error);
   }
@@ -51,7 +51,7 @@ const updateAIssue = async (req: Request, res: Response) => {
       role as string,
       req.body,
     );
-    sendResponse(res, 200, true, "Issue Updated Successfully", result?.rows[0]);
+    sendResponse(res, 200, true, undefined, result?.rows[0]);
   } catch (error: any) {
     sendResponse(res, 500, false, error.message, undefined, error);
   }
@@ -73,7 +73,7 @@ const deleteIssue = async (req: Request, res: Response) => {
 export const issueController = {
   createIssue,
   getAllIssues,
-  getASingleUser,
+  getASingleissue,
   updateAIssue,
   deleteIssue,
 };

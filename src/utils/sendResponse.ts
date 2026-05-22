@@ -4,13 +4,13 @@ const sendResponse = <T>(
   res: Response,
   statusCode: number,
   success: boolean,
-  message: string,
+  message?: string,
   data?: T,
   error ?: T,
 ) => {
     return res.status(statusCode).json({
         success,
-        message,
+        ...(message !== undefined && { message }),
         ...(data !== undefined && { data }),
         ...(error !== undefined && {error})
     })

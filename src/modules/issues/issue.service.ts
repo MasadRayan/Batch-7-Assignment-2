@@ -129,7 +129,6 @@ const updateIssueIntoDB = async (
   role: string,
   payload: ICreateIssue,
 ) => {
-  console.log(id, role);
   const { title, description, type } = payload;
   const issueInfo = await pool.query(
     `
