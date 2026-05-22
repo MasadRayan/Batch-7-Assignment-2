@@ -145,11 +145,11 @@ const updateIssueIntoDB = async (
   }
 
   if (role === "contributor" && userId !== issue.reporter_id) {
-    throw new Error ("Unauthorize Access!!");
+    throw new Error("Unauthorize Access!!");
   }
 
   if (role === "contributor" && issue.status !== "open") {
-    throw new Error ("This Issue is In Progress")
+    throw new Error("This Issue is In Progress");
   }
 
   if (
@@ -185,8 +185,18 @@ const updateIssueIntoDB = async (
     `,
       [title, description, type, id],
     );
-    return result
+    return result;
   }
+};
+
+const deleteIssueFromDB = async (id: string) => {
+  const result = await pool.query(
+    `
+      DELETE FROM issues WHERE id = $1
+  `,
+    [id],
+  );
+  return result
 };
 
 export const issueService = {
@@ -194,4 +204,5 @@ export const issueService = {
   getAllIssuesFromDB,
   getASingleIssueFromDB,
   updateIssueIntoDB,
+  deleteIssueFromDB,
 };
