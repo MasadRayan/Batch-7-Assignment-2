@@ -1,8 +1,8 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { authService } from "./auth.service";
 import sendResponse from "../../utils/sendResponse";
 
-const createUser = async (req: Request, res: Response) => {
+const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await authService.createUserInDb(req.body);
     if (result.rows.length === 0) {
@@ -10,18 +10,18 @@ const createUser = async (req: Request, res: Response) => {
     }
     sendResponse(res, 201, true, "User Created Successfully", result.rows[0])
   } catch (error: any) {
-    sendResponse(res, 500, false, error.message as string, undefined, error)
+    next(error);
   }
 };
 
-const loginUser = async (req: Request, res: Response) => {
+const loginUser = async (req: Request, res: Response, next: NextFunction) => {
     const {email, password} = req.body;
     try {
         const result = await authService.loginUserIntoDB(email as string, password as string)
         const {accesstoken : token ,user} = result;
         sendResponse(res, 200, true, "Login successful", {token, user})
     } catch (error: any) {
-        sendResponse(res, 500, false, error.message as string, undefined, error)
+        next(error);
     }
 }
 

@@ -64,6 +64,18 @@ var initDB = async () => {
 
 // src/modules/auth/auth.service.ts
 import jwt from "jsonwebtoken";
+
+// src/utils/AppError.ts
+var AppError = class extends Error {
+  statusCode;
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+};
+var AppError_default = AppError;
+
+// src/modules/auth/auth.service.ts
 var createUserInDb = async (payload) => {
   const { name, email, password, role } = payload;
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -84,12 +96,12 @@ var loginUserIntoDB = async (email, password) => {
     [email]
   );
   if (userInfo.rows.length === 0) {
-    throw new Error("User Not Found");
+    throw new AppError_default("Invalid credentials", 401);
   }
   const user = userInfo.rows[0];
   const comparePassword = await bcrypt.compare(password, user.password);
   if (!comparePassword) {
-    throw new Error("Invalid credentials");
+    throw new AppError_default("Invalid credentials", 401);
   }
   const jwtPayload = {
     id: user.id,
@@ -120,7 +132,7 @@ var sendResponse = (res, statusCode, success, message, data, error) => {
 var sendResponse_default = sendResponse;
 
 // src/modules/auth/auth.controller.ts
-var createUser = async (req, res) => {
+var createUser = async (req, res, next) => {
   try {
     const result = await authService.createUserInDb(req.body);
     if (result.rows.length === 0) {
@@ -128,17 +140,17 @@ var createUser = async (req, res) => {
     }
     sendResponse_default(res, 201, true, "User Created Successfully", result.rows[0]);
   } catch (error) {
-    sendResponse_default(res, 500, false, error.message, void 0, error);
+    next(error);
   }
 };
-var loginUser = async (req, res) => {
+var loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     const result = await authService.loginUserIntoDB(email, password);
     const { accesstoken: token, user } = result;
     sendResponse_default(res, 200, true, "Login successful", { token, user });
   } catch (error) {
-    sendResponse_default(res, 500, false, error.message, void 0, error);
+    next(error);
   }
 };
 var authController = {
@@ -154,16 +166,6 @@ var AuthRouter = router;
 
 // src/modules/issues/issue.route.ts
 import { Router as Router2 } from "express";
-
-// src/utils/AppError.ts
-var AppError = class extends Error {
-  statusCode;
-  constructor(message, statusCode) {
-    super(message);
-    this.statusCode = statusCode;
-  }
-};
-var AppError_default = AppError;
 
 // src/modules/issues/issue.service.ts
 var createIssueInDB = async (payload, user) => {
@@ -443,16 +445,10 @@ var IssueRouter = router2;
 // src/middleware/globalErrorHandler.ts
 var globalHandler = (err, req, res, next) => {
   if (err instanceof AppError_default) {
-    return res.status(err.statusCode).json({
-      success: false,
-      message: err.message
-    });
+    return sendResponse_default(res, err.statusCode, false, err.message, void 0, err);
   }
   const message = err instanceof Error ? err.message : "Internal Server Error";
-  return res.status(500).json({
-    success: false,
-    message
-  });
+  return sendResponse_default(res, 500, false, message, void 0, err);
 };
 var globalErrorHandler_default = globalHandler;
 

@@ -3,6 +3,7 @@ import { pool } from "../../database";
 import type { ICreateUser } from "./auth.interface";
 import jwt from "jsonwebtoken";
 import config from "../../config/env";
+import AppError from "../../utils/AppError";
 
 const createUserInDb = async (payload: ICreateUser) => {
   const { name, email, password, role } = payload;
@@ -33,7 +34,7 @@ const loginUserIntoDB = async (email: string, password: string) => {
   );
 
   if (userInfo.rows.length === 0) {
-    throw new Error("User Not Found");
+    throw new AppError("Invalid credentials", 401);
   }
 
   const user = userInfo.rows[0];
@@ -41,7 +42,7 @@ const loginUserIntoDB = async (email: string, password: string) => {
   const comparePassword = await bcrypt.compare(password, user.password);
 
   if (!comparePassword) {
-    throw new Error("Invalid credentials");
+    throw new AppError("Invalid credentials", 401);
   }
 
   const jwtPayload = {
