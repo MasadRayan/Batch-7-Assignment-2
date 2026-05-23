@@ -77,16 +77,16 @@ var createUserInDb = async (payload) => {
   return result;
 };
 var loginUserIntoDB = async (email, password) => {
-  const userInfo2 = await pool.query(
+  const userInfo = await pool.query(
     `
         SELECT * FROM users WHERE email = $1
     `,
     [email]
   );
-  if (userInfo2.rows.length === 0) {
+  if (userInfo.rows.length === 0) {
     throw new Error("User Not Found");
   }
-  const user = userInfo2.rows[0];
+  const user = userInfo.rows[0];
   const comparePassword = await bcrypt.compare(password, user.password);
   if (!comparePassword) {
     throw new Error("Invalid credentials");
@@ -155,6 +155,16 @@ var AuthRouter = router;
 // src/modules/issues/issue.route.ts
 import { Router as Router2 } from "express";
 
+// src/utils/AppError.ts
+var AppError = class extends Error {
+  statusCode;
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+};
+var AppError_default = AppError;
+
 // src/modules/issues/issue.service.ts
 var createIssueInDB = async (payload, user) => {
   const { title, description, type } = payload;
@@ -165,7 +175,7 @@ var createIssueInDB = async (payload, user) => {
     [title, description, type, user.id]
   );
   if (result.rows.length === 0) {
-    throw new Error("Issue cannot created");
+    throw new AppError_default("Issue cannot be created", 500);
   }
   return result;
 };
@@ -194,7 +204,7 @@ var getAllIssuesFromDB = async (sort, type, status) => {
   }
   const issues = issuesLength.rows;
   if (issues.length === 0) {
-    throw new Error("No issues found");
+    throw new AppError_default("No issues found", 404);
   }
   const allRepoterId = issues.map((issue) => issue.reporter_id);
   const getUsers = await pool.query(
@@ -224,7 +234,7 @@ var getASingleIssueFromDB = async (id) => {
     [id]
   );
   if (issue.rows.length === 0) {
-    throw new Error("Issue not found");
+    throw new AppError_default("Issue not found", 404);
   }
   const reporterId = issue.rows[0].reporter_id;
   const reporterInfo = await pool.query(
@@ -234,7 +244,7 @@ var getASingleIssueFromDB = async (id) => {
     [reporterId]
   );
   if (reporterInfo.rows.length === 0) {
-    throw new Error("Issue not found");
+    throw new AppError_default("Reporter not found", 404);
   }
   const user = reporterInfo.rows[0];
   const result = {
@@ -259,13 +269,13 @@ var updateIssueIntoDB = async (id, userId, role, payload) => {
   );
   const issue = issueInfo.rows[0];
   if (!issue) {
-    throw new Error("Issue not found");
+    throw new AppError_default("Issue not found", 404);
   }
   if (role === "contributor" && userId !== issue.reporter_id) {
-    throw new Error("Unauthorize Access!!");
+    throw new AppError_default("Unauthorized Access!", 401);
   }
   if (role === "contributor" && issue.status !== "open") {
-    throw new Error("This Issue is In Progress");
+    throw new AppError_default("Issue is already in progress", 403);
   }
   if (role === "contributor" && issue.status === "open" && userId === issue.reporter_id) {
     const result = await pool.query(
@@ -298,6 +308,7 @@ var updateIssueIntoDB = async (id, userId, role, payload) => {
     );
     return result;
   }
+  throw new AppError_default("You are not authorized to update this issue", 403);
 };
 var deleteIssueFromDB = async (id) => {
   const result = await pool.query(
@@ -317,18 +328,16 @@ var issueService = {
 };
 
 // src/modules/issues/issue.controller.ts
-import "os";
-import "fs";
-var createIssue = async (req, res) => {
+var createIssue = async (req, res, next) => {
   const user = req.user;
   try {
     const result = await issueService.createIssueInDB(req.body, user);
     sendResponse_default(res, 201, true, "Issue created successful", result.rows[0]);
   } catch (error) {
-    sendResponse_default(res, 500, false, error.message, void 0, error);
+    next(error);
   }
 };
-var getAllIssues = async (req, res) => {
+var getAllIssues = async (req, res, next) => {
   const { sort, type, status } = req.query;
   try {
     const result = await issueService.getAllIssuesFromDB(
@@ -338,22 +347,21 @@ var getAllIssues = async (req, res) => {
     );
     sendResponse_default(res, 200, true, void 0, result);
   } catch (error) {
-    sendResponse_default(res, 500, false, error.message, void 0, error);
+    next(error);
   }
 };
-var getASingleissue = async (req, res) => {
+var getASingleissue = async (req, res, next) => {
   const id = req.params.id;
   try {
     const result = await issueService.getASingleIssueFromDB(id);
     sendResponse_default(res, 200, true, void 0, result);
   } catch (error) {
-    sendResponse_default(res, 500, false, error.message, void 0, error);
+    next(error);
   }
 };
-var updateAIssue = async (req, res) => {
+var updateAIssue = async (req, res, next) => {
   const { role, id: userId } = req.user;
   const id = req.params.id;
-  console.log(role, userId, id, req.body);
   try {
     const result = await issueService.updateIssueIntoDB(
       id,
@@ -363,10 +371,10 @@ var updateAIssue = async (req, res) => {
     );
     sendResponse_default(res, 200, true, void 0, result?.rows[0]);
   } catch (error) {
-    sendResponse_default(res, 500, false, error.message, void 0, error);
+    next(error);
   }
 };
-var deleteIssue = async (req, res) => {
+var deleteIssue = async (req, res, next) => {
   const id = req.params.id;
   try {
     const result = await issueService.deleteIssueFromDB(id);
@@ -375,7 +383,7 @@ var deleteIssue = async (req, res) => {
     }
     sendResponse_default(res, 200, true, "Issue deleted successfully");
   } catch (error) {
-    sendResponse_default(res, 500, false, error.message, void 0, error);
+    next(error);
   }
 };
 var issueController = {
@@ -398,14 +406,14 @@ var createIssue2 = (...roles) => {
       token,
       env_default.accessToken_key
     );
-    const userInfo2 = await pool.query(
+    const userInfo = await pool.query(
       `
             SELECT * FROM users WHERE email = $1    
         `,
       [payload.email]
     );
-    const user = userInfo2.rows[0];
-    if (userInfo2.rows.length === 0) {
+    const user = userInfo.rows[0];
+    if (userInfo.rows.length === 0) {
       sendResponse_default(res, 404, false, "User Not Found");
     }
     if (roles.length && !roles.includes(user.role)) {
@@ -432,6 +440,22 @@ router2.patch("/:id", createIssue_default(USER_ROLE.contributor, USER_ROLE.maint
 router2.delete("/:id", createIssue_default(USER_ROLE.maintainer), issueController.deleteIssue);
 var IssueRouter = router2;
 
+// src/middleware/globalErrorHandler.ts
+var globalHandler = (err, req, res, next) => {
+  if (err instanceof AppError_default) {
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message
+    });
+  }
+  const message = err instanceof Error ? err.message : "Internal Server Error";
+  return res.status(500).json({
+    success: false,
+    message
+  });
+};
+var globalErrorHandler_default = globalHandler;
+
 // src/app.ts
 var app = express();
 app.use(express.json());
@@ -445,6 +469,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/auth", AuthRouter);
 app.use("/api/issues", IssueRouter);
+app.use(globalErrorHandler_default);
 var app_default = app;
 
 // src/server.ts
