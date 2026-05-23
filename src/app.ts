@@ -1,6 +1,7 @@
 import express from "express"
 import { AuthRouter } from "./modules/auth/auth.route";
 import { IssueRouter } from "./modules/issues/issue.route";
+import globarHandler from "./middleware/globalErrorHandler";
 const app = express()
 const port = 3000;
 
@@ -19,5 +20,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', AuthRouter);
 app.use('/api/issues', IssueRouter);
+
+app.use(globarHandler)
 
 export default app;

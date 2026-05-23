@@ -1,22 +1,24 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import sendResponse from "../../utils/sendResponse";
 import { issueService } from "./issue.service";
-import type { JwtPayload } from "jsonwebtoken";
 import type { IUserPayloadObject } from "./issue.interface";
-import { userInfo } from "node:os";
-import { fstat } from "node:fs";
 
-const createIssue = async (req: Request, res: Response) => {
+
+const createIssue = async (req: Request, res: Response, next: NextFunction) => {
   const user = req.user as IUserPayloadObject;
   try {
     const result = await issueService.createIssueInDB(req.body, user);
     sendResponse(res, 201, true, "Issue created successful", result.rows[0]);
   } catch (error: any) {
-    sendResponse(res, 500, false, error.message as string, undefined, error);
+    next(error);
   }
 };
 
-const getAllIssues = async (req: Request, res: Response) => {
+const getAllIssues = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { sort, type, status } = req.query;
   try {
     const result = await issueService.getAllIssuesFromDB(
@@ -26,24 +28,31 @@ const getAllIssues = async (req: Request, res: Response) => {
     );
     sendResponse(res, 200, true, undefined, result);
   } catch (error: any) {
-    sendResponse(res, 500, false, error.message, undefined, error);
+    next(error);
   }
 };
 
-const getASingleissue = async (req: Request, res: Response) => {
+const getASingleissue = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const id = req.params.id;
   try {
     const result = await issueService.getASingleIssueFromDB(id as string);
     sendResponse(res, 200, true, undefined, result);
   } catch (error: any) {
-    sendResponse(res, 500, false, error.message, undefined, error);
+    next(error);
   }
 };
 
-const updateAIssue = async (req: Request, res: Response) => {
+const updateAIssue = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { role, id: userId } = req.user as IUserPayloadObject;
   const id = req.params.id;
-  console.log(role, userId, id, req.body);
   try {
     const result = await issueService.updateIssueIntoDB(
       id as string,
@@ -53,11 +62,11 @@ const updateAIssue = async (req: Request, res: Response) => {
     );
     sendResponse(res, 200, true, undefined, result?.rows[0]);
   } catch (error: any) {
-    sendResponse(res, 500, false, error.message, undefined, error);
+    next(error);
   }
 };
 
-const deleteIssue = async (req: Request, res: Response) => {
+const deleteIssue = async (req: Request, res: Response, next: NextFunction) => {
   const id = req.params.id;
   try {
     const result = await issueService.deleteIssueFromDB(id as string);
@@ -66,7 +75,7 @@ const deleteIssue = async (req: Request, res: Response) => {
     }
     sendResponse(res, 200, true, "Issue deleted successfully");
   } catch (error: any) {
-    sendResponse(res, 500, false, error.message, undefined, error);
+    next(error);
   }
 };
 

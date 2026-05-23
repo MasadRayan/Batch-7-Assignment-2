@@ -1,4 +1,5 @@
 import { pool } from "../../database";
+import AppError from "../../utils/AppError";
 import type {
   ICreateIssue,
   IssueQueryParams,
@@ -18,7 +19,7 @@ const createIssueInDB = async (
   );
 
   if (result.rows.length === 0) {
-    throw new Error("Issue cannot created");
+    throw new AppError("Issue cannot be created", 500);
   }
 
   return result;
@@ -55,7 +56,7 @@ const getAllIssuesFromDB = async (
   const issues = issuesLength.rows;
 
   if (issues.length === 0) {
-    throw new Error("No issues found");
+    throw new AppError("No issues found", 404);
   }
 
   const allRepoterId = issues.map((issue) => issue.reporter_id);
@@ -92,7 +93,7 @@ const getASingleIssueFromDB = async (id: string) => {
   );
 
   if (issue.rows.length === 0) {
-    throw new Error("Issue not found");
+    throw new AppError("Issue not found", 404);
   }
 
   const reporterId = issue.rows[0].reporter_id;
@@ -105,7 +106,7 @@ const getASingleIssueFromDB = async (id: string) => {
   );
 
   if (reporterInfo.rows.length === 0) {
-    throw new Error("Issue not found");
+    throw new AppError("Reporter not found", 404);
   }
 
   const user = reporterInfo.rows[0];
@@ -140,15 +141,13 @@ const updateIssueIntoDB = async (
   const issue = issueInfo.rows[0];
 
   if (!issue) {
-    throw new Error("Issue not found");
+    throw new AppError("Issue not found", 404);
   }
-
   if (role === "contributor" && userId !== issue.reporter_id) {
-    throw new Error("Unauthorize Access!!");
+    throw new AppError("Unauthorized Access!", 401);
   }
-
   if (role === "contributor" && issue.status !== "open") {
-    throw new Error("This Issue is In Progress");
+    throw new AppError("Issue is already in progress", 403);
   }
 
   if (
@@ -186,6 +185,7 @@ const updateIssueIntoDB = async (
     );
     return result;
   }
+  throw new AppError("You are not authorized to update this issue", 403);
 };
 
 const deleteIssueFromDB = async (id: string) => {
@@ -195,7 +195,7 @@ const deleteIssueFromDB = async (id: string) => {
   `,
     [id],
   );
-  return result
+  return result;
 };
 
 export const issueService = {
