@@ -55,10 +55,9 @@ npm install
 ### 3. Create `.env` file
  
 ```env
-PORT
-DATABASE_URL=your_neondb_connection_string
-JWT_SECRET=your_jwt_secret
-NODE_ENV=development
+DATABASE_CONNECTION_STRING=your_neondb_connection_string
+PORT=your_port
+ACCESSTOKEN_KEY=jwt_secret
 ```
  
 ### 4. Run in development
