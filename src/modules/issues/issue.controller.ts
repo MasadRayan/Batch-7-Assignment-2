@@ -26,7 +26,7 @@ const getAllIssues = async (
       type as string,
       status as string,
     );
-    sendResponse(res, 200, true, undefined, result);
+    sendResponse(res, 200, true, "Issues retrived successfully", result);
   } catch (error: any) {
     next(error);
   }
@@ -40,7 +40,7 @@ const getASingleissue = async (
   const id = req.params.id;
   try {
     const result = await issueService.getASingleIssueFromDB(id as string);
-    sendResponse(res, 200, true, undefined, result);
+    sendResponse(res, 200, true, "Issues retrived successfully", result);
   } catch (error: any) {
     next(error);
   }

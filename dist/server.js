@@ -347,7 +347,7 @@ var getAllIssues = async (req, res, next) => {
       type,
       status
     );
-    sendResponse_default(res, 200, true, void 0, result);
+    sendResponse_default(res, 200, true, "Issues retrived successfully", result);
   } catch (error) {
     next(error);
   }
@@ -356,7 +356,7 @@ var getASingleissue = async (req, res, next) => {
   const id = req.params.id;
   try {
     const result = await issueService.getASingleIssueFromDB(id);
-    sendResponse_default(res, 200, true, void 0, result);
+    sendResponse_default(res, 200, true, "Issues retrived successfully", result);
   } catch (error) {
     next(error);
   }
