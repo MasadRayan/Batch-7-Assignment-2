@@ -445,10 +445,10 @@ var IssueRouter = router2;
 // src/middleware/globalErrorHandler.ts
 var globalHandler = (err, req, res, next) => {
   if (err instanceof AppError_default) {
-    return sendResponse_default(res, err.statusCode, false, err.message, void 0, err);
+    return sendResponse_default(res, err.statusCode, false, err.message, void 0, err.message);
   }
   const message = err instanceof Error ? err.message : "Internal Server Error";
-  return sendResponse_default(res, 500, false, message, void 0, err);
+  return sendResponse_default(res, 500, false, message, void 0, message);
 };
 var globalErrorHandler_default = globalHandler;
 
